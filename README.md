@@ -74,11 +74,12 @@ src/
 ## ⚡ Observações
 
 - O token JWT é salvo no localStorage e enviado automaticamente nas requisições protegidas.
-
-<img width="1901" height="997" alt="image" src="https://github.com/user-attachments/assets/2515eb38-fd30-4c58-8e81-3a36bd653b84" />
-
 - O projeto está pronto para deploy em serviços como Vercel, Netlify, etc.
 - Para dúvidas ou sugestões, abra uma issue no repositório.
+
+<img width="1918" height="1008" alt="image" src="https://github.com/user-attachments/assets/df700d5d-01e2-4eaa-adb7-59bcafb3a538" />
+<img width="1918" height="1012" alt="image" src="https://github.com/user-attachments/assets/bc389696-6187-4c44-9ada-9e208085bd99" />
+
 
 ---
 
