@@ -1,3 +1,4 @@
+
 :root {
   --primary-blue: #174ea6;
   --secondary-blue: #2563eb;
@@ -491,9 +492,7 @@ body, html, #root {
 }
 
 .form-group input[type="text"],
- .form-group input[type="url"],
- .form-group select,
- .form-group textarea {
+.form-group input[type="url"] {
   width: 100%;
   border: 2px solid #e2e8f0;
   border-radius: var(--radius-medium);
@@ -502,7 +501,6 @@ body, html, #root {
   background: #f8fafc;
   transition: all var(--transition-smooth);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
 }
 
 .form-group input[type="text"]:focus,
@@ -754,4 +752,5 @@ input:focus-visible {
 .skills-table-container::-webkit-scrollbar-thumb:hover,
 .modal-content::-webkit-scrollbar-thumb:hover {
   background: var(--primary-blue);
+>>>>>>> 75b9b479a453719b25ebf1ec8155f7004fe16684
 }

@@ -6,9 +6,7 @@ import { listarCategorias } from '../../services/categoriaService';
 import Modal from '../../components/Modal';
 import './Home.css';
 import NekiLogo from '../../assets/image.png';
-import MESSAGES from '../../constants/messages';
 
-// Service aprimorado para user skills com validação adequada
 const enhancedSkillsService = {
   ...skillsService,
   addUserSkill: async (userId, skillId, level, descricao) => {
@@ -28,7 +26,6 @@ const enhancedSkillsService = {
   }
 };
 
-// Função para download do PDF das skills do usuário
 const downloadSkillsPdf = (userId, token) => {
   api.get(`/api/user-skills/${userId}/pdf`, {
     responseType: 'blob',
@@ -46,7 +43,6 @@ const downloadSkillsPdf = (userId, token) => {
     .catch(() => alert('Erro ao baixar o PDF.'));
 };
 
-// Função para obter URL da imagem da skill com fallback
 const getSkillImageUrl = (skill) => {
   const imageUrl = skill?.imageUrl ||
     skill?.imagem_url ||
@@ -59,7 +55,6 @@ const getSkillImageUrl = (skill) => {
   return imageUrl && imageUrl.trim() !== '' ? imageUrl : '/placeholder-skill.png';
 };
 
-// Função para validar se uma URL de imagem é válida
 const isValidImageUrl = (url) => {
   if (!url || typeof url !== 'string') return false;
   try {
@@ -71,7 +66,7 @@ const isValidImageUrl = (url) => {
 };
 
 const Home = () => {
-  // Estados do componente - todos declarados no início
+  const navigate = useNavigate();
   const [userSkills, setUserSkills] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editLevel, setEditLevel] = useState({});
@@ -88,46 +83,30 @@ const Home = () => {
   const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
   const [skills, setSkills] = useState([]);
   const [skillSelecionada, setSkillSelecionada] = useState('');
-  
-  const navigate = useNavigate();
 
-  // CORREÇÃO: Função movida para depois dos states para evitar erro de hoisting
-  // Atualiza descrição ao selecionar skill no dropdown
-  const handleSkillChange = (e) => {
-    const skillId = e.target.value;
-    setSkillSelecionada(skillId);
-    if (!skillId) {
-      setNewSkillDescription('');
-      return;
-    }
-    const skillEncontrada = skills.find(s => String(s.id) === String(skillId));
-    if (skillEncontrada && skillEncontrada.descricao) {
-      setNewSkillDescription(skillEncontrada.descricao);
-    } else {
-      setNewSkillDescription('');
-    }
-  };
-
-  // Carrega categorias e skills do banco na inicialização
+  // Carrega categorias e skills do banco
   useEffect(() => {
     listarCategorias()
       .then(data => {
         setCategorias(data);
+        console.log('Categorias:', data);
       })
-      .catch(() => {
+      .catch(err => {
         setCategorias([]);
+        console.error('Erro ao buscar categorias:', err);
       });
 
     skillsService.getSkills()
       .then(data => {
         setSkills(data);
+        console.log('Skills:', data);
       })
-      .catch(() => {
+      .catch(err => {
         setSkills([]);
+        console.error('Erro ao buscar skills:', err);
       });
   }, []);
 
-  // Remove mensagem de sucesso após 2 segundos
   useEffect(() => {
     if (successMessage) {
       const timer = setTimeout(() => setSuccessMessage(''), 2000);
@@ -135,7 +114,6 @@ const Home = () => {
     }
   }, [successMessage]);
 
-  // Verifica se usuário está logado
   const userId = localStorage.getItem('userId');
   const token = localStorage.getItem('token');
 
@@ -143,12 +121,11 @@ const Home = () => {
     if (!userId) navigate('/login');
   }, [userId, navigate]);
 
-  // Função para buscar skills do usuário
   const fetchSkillsData = useCallback(async () => {
     setLoading(true);
     setError('');
     if (!token) {
-      setError(MESSAGES.sessionExpired);
+      setError('Sessão expirada. Faça login novamente.');
       setLoading(false);
       navigate('/login');
       return;
@@ -158,12 +135,11 @@ const Home = () => {
       setUserSkills(userSkillsData);
     } catch (err) {
       console.error('Erro real ao buscar userSkills:', err);
-      setError(MESSAGES.loadError);
+      setError('Erro ao carregar os dados. Por favor, tente novamente.');
     }
     setLoading(false);
   }, [userId, token, navigate]);
 
-  // Busca skills do usuário quando componente monta
   useEffect(() => {
     if (userId) fetchSkillsData();
   }, [userId, fetchSkillsData]);
@@ -174,35 +150,30 @@ const Home = () => {
     setError('');
     setSuccessMessage('');
     if (!userId || !token) {
-      setError(MESSAGES.sessionExpired);
+      setError('Sessão expirada. Faça login novamente.');
       return;
     }
     if (!skillSelecionada || !newSkillLevel) {
-      setError(MESSAGES.missingFields);
+      setError('Selecione uma categoria, uma skill e o nível.');
       return;
     }
     try {
       const userSkillsData = await enhancedSkillsService.getUserSkills(userId);
       const alreadyHasSkill = userSkillsData.some(us => us.skill?.id === parseInt(skillSelecionada));
       if (alreadyHasSkill) throw new Error('Você já possui esta skill');
-      
       await enhancedSkillsService.addUserSkill(
         userId,
         skillSelecionada,
         newSkillLevel,
-        newSkillDescription
+        newSkillDescription // <-- descrição personalizada do usuário
       );
-      
       await fetchSkillsData();
       closeAddSkillModal();
-      setSuccessMessage(MESSAGES.skillAdded); // CORREÇÃO: Removida duplicação
+      setSuccessMessage('Skill adicionada com sucesso!');
     } catch (err) {
-      // CORREÇÃO: Lógica de erro simplificada
-      if (err.message.includes('já possui')) {
-        setError(MESSAGES.duplicateSkill);
-      } else {
-        setError(MESSAGES.addError);
-      }
+      setError(err.message.includes('já possui') ?
+        'Você já possui esta skill.' :
+        'Erro ao adicionar skill. Tente novamente.');
     }
   }, [userId, token, skillSelecionada, newSkillLevel, newSkillDescription, fetchSkillsData]);
 
@@ -212,15 +183,15 @@ const Home = () => {
     setError('');
     setSuccessMessage('');
     if (!userId || !token) {
-      setError(MESSAGES.sessionExpired);
+      setError('Sessão expirada. Faça login novamente.');
       return;
     }
     if (!newSkillName || !newSkillImageUrl || !newSkillLevel || !newSkillDescription || !categoriaSelecionada) {
-      setError(MESSAGES.missingFields);
+      setError('Preencha todos os campos e selecione uma categoria.');
       return;
     }
     if (!isValidImageUrl(newSkillImageUrl)) {
-      setError(MESSAGES.invalidUrl);
+      setError('Por favor, insira uma URL de imagem válida.');
       return;
     }
     try {
@@ -230,28 +201,24 @@ const Home = () => {
         imagem_url: newSkillImageUrl.trim(),
         categoria_id: categoriaSelecionada
       };
-      
       const newSkillResponse = await api.post('/api/skills', novaSkill, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
-      
       const skillId = newSkillResponse.data.id;
       await enhancedSkillsService.addUserSkill(userId, skillId, newSkillLevel);
       await fetchSkillsData();
       closeAddSkillModal();
-      setSuccessMessage(MESSAGES.skillAdded);
-      
+      setSuccessMessage('Skill adicionada com sucesso!');
       // Atualiza lista de skills para aparecer na seleção
       skillsService.getSkills().then(setSkills).catch(() => {});
     } catch (err) {
-      setError(MESSAGES.addError);
+      setError('Erro ao adicionar nova skill. Tente novamente.');
     }
   }, [userId, token, newSkillName, newSkillImageUrl, newSkillLevel, newSkillDescription, categoriaSelecionada, fetchSkillsData]);
 
-  // Atualiza nível de uma skill
   const handleUpdateLevel = async (userSkillId) => {
     setError('');
     try {
@@ -264,11 +231,10 @@ const Home = () => {
       });
       await fetchSkillsData();
     } catch {
-      setError(MESSAGES.updateError);
+      setError('Erro ao atualizar o nível. Tente novamente.');
     }
   };
 
-  // Exclui uma skill do usuário
   const handleDeleteSkill = async (userSkillId) => {
     if (!window.confirm('Tem certeza que deseja excluir esta skill?')) return;
     setError('');
@@ -276,26 +242,23 @@ const Home = () => {
     try {
       await enhancedSkillsService.deleteUserSkill(userSkillId);
       await fetchSkillsData();
-      setSuccessMessage(MESSAGES.skillDeleted);
+      setSuccessMessage('Skill excluída com sucesso!');
     } catch {
-      setError(MESSAGES.deleteError);
+      setError('Erro ao excluir a skill. Tente novamente.');
     }
   };
 
-  // Logout do usuário
   const handleLogout = () => {
     localStorage.clear();
     navigate('/login');
   };
 
-  // Atualiza URL da imagem e prévia
   const handleImageUrlChange = (e) => {
     const url = e.target.value;
     setNewSkillImageUrl(url);
     setImageUrlPreview(isValidImageUrl(url) ? url : '');
   };
 
-  // Trata erro de carregamento de imagem
   const handleImageError = (userSkillId) => {
     setImageLoadError(prev => ({
       ...prev,
@@ -303,7 +266,6 @@ const Home = () => {
     }));
   };
 
-  // Fecha modal e limpa estados
   const closeAddSkillModal = () => {
     setIsModalOpen(false);
     setNewSkillName('');
@@ -316,7 +278,6 @@ const Home = () => {
     setError('');
   };
 
-  // Renderização de loading
   if (loading) {
     return (
       <div className="home-bg">
@@ -330,7 +291,6 @@ const Home = () => {
   return (
     <div className="home-bg">
       <div className="skills-table-container">
-        {/* Botões de ação do cabeçalho */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginBottom: '0.5rem' }}>
           <button
             className="btn-modal-save"
@@ -355,13 +315,11 @@ const Home = () => {
           </button>
         </div>
 
-        {/* Logo e título */}
         <div className="skills-table-logo">
           <img src={NekiLogo} alt="Neki Logo" />
           <h2 className="skills-table-title">Minhas Skills</h2>
         </div>
 
-        {/* Mensagem de sucesso */}
         {successMessage && (
           <p className="home-success" style={{
             background: '#e6fffa',
@@ -377,10 +335,8 @@ const Home = () => {
           </p>
         )}
 
-        {/* Mensagem de erro */}
         {error && <p className="home-error">{error}</p>}
 
-        {/* Tabela de skills */}
         <table className="skills-table">
           <thead>
             <tr>
@@ -399,19 +355,17 @@ const Home = () => {
                 return (
                   <tr key={userSkill.id}>
                     <td className="skill-icon-cell">
-                      <div>
-                        <img
-                          src={hasImageError ? '/placeholder-skill.png' : skillImageUrl}
-                          alt={userSkill.skill?.name || userSkill.skill?.nome || 'Skill'}
-                          onError={() => handleImageError(userSkill.id)}
-                          style={{
-                            width: '50px',
-                            height: '50px',
-                            objectFit: 'contain',
-                            borderRadius: '8px'
-                          }}
-                        />
-                      </div>
+                      <img
+                        src={hasImageError ? '/placeholder-skill.png' : skillImageUrl}
+                        alt={userSkill.skill?.name || userSkill.skill?.nome || 'Skill'}
+                        onError={() => handleImageError(userSkill.id)}
+                        style={{
+                          width: '50px',
+                          height: '50px',
+                          objectFit: 'contain',
+                          borderRadius: '8px'
+                        }}
+                      />
                     </td>
                     <td>
                       <div className="skill-name">
@@ -454,13 +408,7 @@ const Home = () => {
                     </td>
                     <td>
                       <div className="skill-description">
-                        {
-                          userSkill.descricao?.trim()
-                            ? userSkill.descricao
-                            : userSkill.skill?.descricao?.trim()
-                              ? userSkill.skill.descricao
-                              : 'Descrição não disponível'
-                        }
+                        {userSkill.skill?.descricao?.trim() || 'Descrição não disponível'}
                       </div>
                     </td>
                     <td>
@@ -506,7 +454,6 @@ const Home = () => {
           </tbody>
         </table>
 
-        {/* Botão para abrir modal */}
         <button
           className="btn-add-skill"
           onClick={() => setIsModalOpen(true)}
@@ -515,31 +462,8 @@ const Home = () => {
         </button>
       </div>
 
-      {/* Modal para adicionar skills */}
       <Modal isOpen={isModalOpen} onClose={closeAddSkillModal}>
-        <div className="modal-content" style={{ position: 'relative' }}>
-          {/* Botão X para fechar o modal */}
-          <button
-            type="button"
-            className="modal-close-x"
-            style={{ 
-              position: 'absolute', 
-              top: '1.2rem', 
-              right: '1.2rem', 
-              background: 'none', 
-              border: 'none', 
-              fontSize: '2rem', 
-              color: '#e74c3c', 
-              cursor: 'pointer', 
-              zIndex: 10 
-            }}
-            onClick={closeAddSkillModal}
-            aria-label="Fechar modal"
-          >
-            &times;
-          </button>
-          
-          {/* Seção 1: Adicionar skill existente */}
+        <div className="modal-content">
           <h3>Adicionar Skill Existente</h3>
           {error && <p className="error-message">{error}</p>}
           <form onSubmit={handleAddSkill}>
@@ -563,7 +487,7 @@ const Home = () => {
               <select
                 id="skill-select"
                 value={skillSelecionada}
-                onChange={handleSkillChange}
+                onChange={e => setSkillSelecionada(e.target.value)}
                 required
                 style={{ width: '100%', minWidth: 0, boxSizing: 'border-box', marginBottom: '1rem' }}
                 disabled={!categoriaSelecionada}
@@ -588,6 +512,7 @@ const Home = () => {
                 onChange={e => setNewSkillDescription(e.target.value)}
                 rows="3"
                 placeholder="Descreva sua experiência com esta skill..."
+                required
                 style={{
                   width: '100%',
                   minWidth: 0,
@@ -626,17 +551,13 @@ const Home = () => {
               <button
                 type="button"
                 className="btn-modal-cancel"
-                style={{ background: '#ffe5e5', color: '#e74c3c', border: 'none' }}
                 onClick={closeAddSkillModal}
               >
                 Cancelar
               </button>
             </div>
           </form>
-          
           <hr style={{ margin: '2rem 0' }} />
-          
-          {/* Seção 2: Cadastrar nova skill */}
           <h3>Ou cadastrar nova skill</h3>
           <form onSubmit={handleAddNovaSkill}>
             <div className="form-group" style={{ width: '100%' }}>
@@ -731,26 +652,7 @@ const Home = () => {
               <textarea
                 id="skill-description-input"
                 value={newSkillDescription}
-                onChange={e => setNewSkillDescription(e.target.value)}
-                onFocus={() => {
-                  // Pré-preenchimento da descrição baseado na skill selecionada ou nome digitado
-                  if (!newSkillDescription) {
-                    let skillObj = null;
-                    if (skillSelecionada) {
-                      skillObj = skills.find(s => String(s.id) === String(skillSelecionada));
-                    } else if (newSkillName) {
-                      skillObj = skills.find(
-                        s => (s.nome || s.name)?.trim().toLowerCase() === newSkillName.trim().toLowerCase()
-                      );
-                    }
-                    
-                    if (skillObj?.descricao?.trim()) {
-                      setNewSkillDescription(skillObj.descricao);
-                    } else {
-                      setNewSkillDescription('');
-                    }
-                  }
-                }}
+                onChange={(e) => setNewSkillDescription(e.target.value)}
                 rows="3"
                 placeholder="Descreva sua experiência com esta skill..."
                 required
@@ -774,4 +676,5 @@ const Home = () => {
   );
 };
 
+>>>>>>> 75b9b479a453719b25ebf1ec8155f7004fe16684
 export default Home;
