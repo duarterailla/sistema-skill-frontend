@@ -1,3 +1,4 @@
+
 /* Variáveis para fácil manutenção */
 :root {
   --primary-blue: #174ea6;
@@ -30,18 +31,18 @@
 /* Card central */
 .login-card {
   background: #fff;
-  border-radius: var(--border-radius);
+  border-radius: 10px;
   box-shadow: 0 4px 24px 0 rgba(30, 76, 160, 0.10), 0 1.5px 8px 0 rgba(30, 198, 223, 0.08);
-  padding: 2.7rem 2.2rem 2.2rem 2.2rem;
+  padding: 2rem 2.5rem 2rem 2.5rem;
+  min-width: 420px;
+  max-width: 600px;
   width: 100%;
-  max-width: 400px;
-  min-width: 320px;
   animation: fadeIn 0.5s ease;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  text-align: center;
+  text-align: left;
 }
 
 /* Animação de entrada */
@@ -185,5 +186,4 @@
   flex-direction: column;
   align-items: stretch;
   margin-bottom: 0.7rem;
->>>>>>> 75b9b479a453719b25ebf1ec8155f7004fe16684
 }
