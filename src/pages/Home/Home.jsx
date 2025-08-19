@@ -66,40 +66,40 @@ const isValidImageUrl = (url) => {
 };
 
 const Home = () => {
-  // Atualiza descrição ao selecionar skill no dropdown
-  const handleSkillChange = (e) => {
-    const skillId = e.target.value;
-    setSkillSelecionada(skillId);
-    if (!skillId) {
-      setNewSkillDescription('');
-      return;
-    }
-    const skillEncontrada = skills.find(s => String(s.id) === String(skillId));
-    if (skillEncontrada && skillEncontrada.descricao) {
-      setNewSkillDescription(skillEncontrada.descricao);
-    } else {
-      setNewSkillDescription('');
-    }
-  };
-  // Todos os useState declarados antes de qualquer uso
-  const [userSkills, setUserSkills] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editLevel, setEditLevel] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [newSkillName, setNewSkillName] = useState('');
-  const [newSkillImageUrl, setNewSkillImageUrl] = useState('');
-  const [newSkillLevel, setNewSkillLevel] = useState('');
-  const [newSkillDescription, setNewSkillDescription] = useState('');
-  const [imageUrlPreview, setImageUrlPreview] = useState('');
-  const [imageLoadError, setImageLoadError] = useState({});
-  const [successMessage, setSuccessMessage] = useState('');
-  const [categorias, setCategorias] = useState([]);
-  const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
-  const [skills, setSkills] = useState([]);
-  const [skillSelecionada, setSkillSelecionada] = useState('');
-  const navigate = useNavigate();
-  // Preenche automaticamente a descrição ao digitar nome de nova skill existente
+// Atualiza descrição ao selecionar skill no dropdown
+const handleSkillChange = (e) => {
+	const skillId = e.target.value;
+	setSkillSelecionada(skillId);
+	if (!skillId) {
+		setNewSkillDescription('');
+		return;
+	}
+	const skillEncontrada = skills.find(s => String(s.id) === String(skillId));
+	if (skillEncontrada && skillEncontrada.descricao) {
+		setNewSkillDescription(skillEncontrada.descricao);
+	} else {
+		setNewSkillDescription('');
+	}
+};
+// Todos os useState declarados antes de qualquer uso
+const [userSkills, setUserSkills] = useState([]);
+const [isModalOpen, setIsModalOpen] = useState(false);
+const [editLevel, setEditLevel] = useState({});
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState('');
+const [newSkillName, setNewSkillName] = useState('');
+const [newSkillImageUrl, setNewSkillImageUrl] = useState('');
+const [newSkillLevel, setNewSkillLevel] = useState('');
+const [newSkillDescription, setNewSkillDescription] = useState('');
+const [imageUrlPreview, setImageUrlPreview] = useState('');
+const [imageLoadError, setImageLoadError] = useState({});
+const [successMessage, setSuccessMessage] = useState('');
+const [categorias, setCategorias] = useState([]);
+const [categoriaSelecionada, setCategoriaSelecionada] = useState('');
+const [skills, setSkills] = useState([]);
+const [skillSelecionada, setSkillSelecionada] = useState('');
+const navigate = useNavigate();
+// Preenche automaticamente a descrição ao digitar nome de nova skill existente
   // ...existing code...
 
   // Carrega categorias e skills do banco
